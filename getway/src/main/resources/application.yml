@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: gateway-demo2
+  cloud:
+    nacos:
+      discovery:
+        server?addr: http://192.168.235.69:8848
+    gateway:
+#      globalcors:
+#        cors-configurations:
+#          '[/**]':
+#            allowedOrigins: ["*"]
+#            allowedMethods:
+#              - GET
+#              - POST
+#              - HEAD
+#              - PUT
+#              - DELETE
+#            allowedHeaders: "*"
+#            allowCredentials: true
+      routes:
+        - id: baidu
+          uri: https://baidu.com # http  ws lb
+          filters:
+            - StripPrefix= 2
+          predicates:
+            - Path= /api/baidu/**
+
+        - id: user11
+          uri: lb://user # http  ws lb
+          filters:
+            - StripPrefix= 1
+          predicates:
+            - Path= /user11/**
+
+        - id: goods11
+          uri: lb://goods # http  ws lb
+          filters:
+            - StripPrefix= 1
+          predicates:
+            - Path= /goods11/**
+server:
+  port: 10010

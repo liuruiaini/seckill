@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: user
+  datasource:
+    password: 123456
+    username: root
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://192.168.235.69:8066/mycattest?useSSL=false
+    type: com.zaxxer.hikari.HikariDataSource
+#redis??
+  redis:
+    password: chen
+    sentinel:
+      nodes:
+        - 192.168.235.69:26379
+        - 192.168.235.69:26380
+        - 192.168.235.69:26381
+      master: mymaster
+  cloud:
+    nacos:
+      server-addr: http://192.168.235.69:8848
+mybatis:
+  type-aliases-package: com.javasm.bean
+server:
+  port: 8000
