@@ -13,6 +13,8 @@ import com.javasm.service.GetUser;
 import com.javasm.service.GoodService;
 import com.javasm.service.OrderService;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -31,17 +33,42 @@ public class GoodServiceImpl implements GoodService {
     private GetUser getUser;
     @Resource
     private OrderService orderService;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     @Override
     public ReturnData<List<SecGoods>> initTable() {
-        List<SecGoods> secGoodsList = secGoodsMapper.selectList(null);
-        for (SecGoods secGoods : secGoodsList) {
-            Goods goods = goodsMapper.selectById(secGoods.getGoodsId());
-            secGoods.setGoodsImg(goods.getGoodsImg());
-            secGoods.setGoodsName(goods.getGoodsName());
-            secGoods.setGoodsPrice(goods.getGoodsPrice());
+        //1.查redis，redis中有就取值，返回
+        ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
+        String secGoodsListStr = ops.get("secGoodsList");
+        List<SecGoods> secGoodsList1=JSONObject.parseObject(secGoodsListStr,List.class);
+        if(null!=secGoodsList1){
+            return new ReturnData().setMsg("代码正确").setCode(200).setT(secGoodsList1);
         }
-        return new ReturnData().setMsg("代码正确").setCode(200).setT(secGoodsList);
+        //2.没有，查数据库，再同步到redis
+        else {
+            List<SecGoods> secGoodsList = secGoodsMapper.selectList(null);
+            if(null!=secGoodsList){
+                stringRedisTemplate.opsForValue().set("secGoodsList",JSON.toJSONString(secGoodsList));
+                return new ReturnData().setMsg("代码正确").setCode(200).setT(secGoodsList);
+            }
+            return new ReturnData().setMsg("商品找不到").setCode(500).setT(secGoodsList);
+        }
+
+
+
+
     }
+//    @Override
+//    public ReturnData<List<SecGoods>> initTable() {
+//        List<SecGoods> secGoodsList = secGoodsMapper.selectList(null);
+//        for (SecGoods secGoods : secGoodsList) {
+//            Goods goods = goodsMapper.selectById(secGoods.getGoodsId());
+//            secGoods.setGoodsImg(goods.getGoodsImg());
+//            secGoods.setGoodsName(goods.getGoodsName());
+//            secGoods.setGoodsPrice(goods.getGoodsPrice());
+//        }
+//        return new ReturnData().setMsg("代码正确").setCode(200).setT(secGoodsList);
+//    }
 
     @Override
     public ReturnData<SecGoods> findInitGoodsById(Integer id) {
