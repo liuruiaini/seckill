@@ -28,6 +28,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         LoginUser loginUser = new LoginUser(u);
         System.out.println(loginUser.getAuthorities());
         return loginUser;
-
     }
 }

@@ -13,6 +13,7 @@ import com.javasm.service.GetUser;
 import com.javasm.service.GoodService;
 import com.javasm.service.OrderService;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -31,6 +32,8 @@ public class GoodServiceImpl implements GoodService {
     private GetUser getUser;
     @Resource
     private OrderService orderService;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     @Override
     public ReturnData<List<SecGoods>> initTable() {
         List<SecGoods> secGoodsList = secGoodsMapper.selectList(null);
@@ -58,40 +61,34 @@ public class GoodServiceImpl implements GoodService {
     @Override
 
     public ReturnData<Order> secKill(Integer id, HttpServletRequest request) {
-        //1.用户未登录
-        String token1 = request.getHeader("token");
-        this.setToken(token1);
-        System.out.println(token1);
-        String login = getUser.isLogin();
-        System.out.println(login);
-        if(!login.equals("11111111111111")){//抛出这个异常，直接给前段返回异常代码了
-            throw new MyRuntimeException(BusinessEnum.USER_NOLOGIN_EXCEPTION);
-        }
-        //1.5通过request查询当前登录用户
-        User u=(User) getUser.info().getT();
-        System.out.println(u);
+//        //1.用户未登录
+//        String token1 = request.getHeader("token");
+//        this.setToken(token1);
+//        //System.out.println(token1);
+//        String login = getUser.isLogin();
+//        //System.out.println(login);
+//        if(null!=login&&!login.equals("11111111111111")){//抛出这个异常，直接给前段返回异常代码了
+//            throw new MyRuntimeException(BusinessEnum.USER_NOLOGIN_EXCEPTION);
+//        }
+//        //1.5通过request查询当前登录用户
+//        User u=(User) getUser.info().getT();
+//        //System.out.println(u);
+//        if(null==u){
+//            throw new MyRuntimeException(BusinessEnum.USER_NOLOGIN_EXCEPTION);
+//        }
+        User u = JSONObject.parseObject(stringRedisTemplate.opsForValue().get(request.getHeader("token")), User.class);
         if(null==u){
-            throw new MyRuntimeException(BusinessEnum.USER_NOLOGIN_EXCEPTION);
+            return null;
         }
-        //2.库存不足
-        SecGoods secGoods = secGoodsMapper.selectById(id);
-        if(secGoods.getStockCount()<=0){
-            throw new MyRuntimeException(BusinessEnum.SECGOOD_COUNT_NOTENOUGH_EXCEPTION);
+        //2.只能支付一次，从reids中获取
+        String order1=stringRedisTemplate.opsForValue().get("order:"+u.getUid()+":"+id);
+        if(null!=order1){
+            return null;
+            //throw new MyRuntimeException(BusinessEnum.REPEAT_SECORDER_EXCEPTION);
         }
-        //3.只能支付一次
-        SecOrder secOrder=orderService.selectone(new LambdaQueryWrapper<SecOrder>().eq(SecOrder::getUserId,u.getUid()).eq(SecOrder::getGoodsId,id));
-        if(null!=secOrder){
-         throw new MyRuntimeException(BusinessEnum.REPEAT_SECORDER_EXCEPTION);
-        }
-        //商品库存和秒杀商品库存减一
-        secGoods.setStockCount(secGoods.getStockCount()-1);
-        int i = secGoodsMapper.updateById(secGoods);
-        Goods goods = goodsMapper.selectById(id);
-        goods.setGoodsStock(goods.getGoodsStock()-1);
-        int i1 = goodsMapper.updateById(goods);
 
-        //生成订单和秒杀商品订单
-        Order order=orderService.insertOrder(u.getUid(),goods);
+        //生成订单和秒杀商品订单;减库存
+        Order order=orderService.doSecKill(u,id);
         return new ReturnData<Order>().setCode(200).setMsg("订单生成成功").setT(order);
     }
 

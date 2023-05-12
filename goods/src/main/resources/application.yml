@@ -5,7 +5,7 @@ spring:
     password: 123456
     username: root
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://192.168.235.69:8066/mycattest?useSSL=false
+    url: jdbc:mysql://192.168.235.69:3310/mycattest?useSSL=false
     type: com.zaxxer.hikari.HikariDataSource
 #redis??
   redis:
@@ -23,3 +23,7 @@ mybatis:
   type-aliases-package: com.javasm.bean
 server:
   port: 8001
+rocketmq:
+  name-server: 192.168.235.69:9876
+  producer:
+    group: goods

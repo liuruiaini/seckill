@@ -1,12 +1,11 @@
 package com.javasm.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.javasm.bean.Goods;
-import com.javasm.bean.Order;
-import com.javasm.bean.SecOrder;
+import com.javasm.bean.*;
 
 public interface OrderService {
     SecOrder selectone(LambdaQueryWrapper<SecOrder> eq);
+    Order selectoneOrder(LambdaQueryWrapper<Order> eq);
 
-    Order insertOrder(Long uid, Goods goods);
+    Order doSecKill(User u,Integer id);
 }

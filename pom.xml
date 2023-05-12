@@ -18,7 +18,7 @@
 		<module>getway</module>
 		<module>user</module>
         <module>goods</module>
-        <module>user1</module>
+
     </modules>
 	<properties>
 		<java.version>1.8</java.version>
@@ -33,6 +33,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.rocketmq</groupId>
+			<artifactId>rocketmq-spring-boot-starter</artifactId>
+			<version>2.2.2</version>
 		</dependency>
 	</dependencies>
 

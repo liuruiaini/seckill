@@ -1,5 +1,6 @@
 package com.javasm.bean;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -19,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @TableName("t_user")
 public class User {
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long uid;
     @TableField(value = "userName")
     private String userName;

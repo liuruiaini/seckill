@@ -1,13 +1,22 @@
 package com.javasm.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.javasm.bean.Goods;
-import com.javasm.bean.Order;
-import com.javasm.bean.SecOrder;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.javasm.bean.*;
+import com.javasm.exception.BusinessEnum;
+import com.javasm.exception.MyRuntimeException;
+import com.javasm.mapper.GoodsMapper;
 import com.javasm.mapper.OrderMapper;
+import com.javasm.mapper.SecGoodsMapper;
 import com.javasm.mapper.SecOrderMapper;
 import com.javasm.service.OrderService;
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
@@ -19,6 +28,14 @@ public class OrderServiceImpl implements OrderService {
     private SecOrderMapper secOrderMapper;
     @Resource
     private OrderMapper orderMapper;
+    @Resource
+    private SecGoodsMapper secGoodsMapper;
+    @Resource
+    private GoodsMapper goodsMapper;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
 
     @Override
     public SecOrder selectone(LambdaQueryWrapper<SecOrder> eq) {
@@ -26,23 +43,32 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order insertOrder(Long uid, Goods goods) {
-        Order order=new Order();
-        order.setUserId(uid);
-        order.setGoodsId(goods.getId());
-        order.setDeliveryAddrId(1);
-        order.setGoodsName(goods.getGoodsName());
-        order.setGoodsCount(1);
-        order.setGoodsPrice(goods.getGoodsPrice());
-        order.setOrderChannel(1);
-        order.setStatus(1);
-        Date date = new Date();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String format = simpleDateFormat.format(date);
-        order.setCreateDate(format);
-        int insert = orderMapper.insert(order);
+    public Order selectoneOrder(LambdaQueryWrapper<Order> eq) {
+        return orderMapper.selectOne(eq);
+    }
 
-        //Order order1 = orderMapper.selectById(insert);
-        return order;
+    @Override
+    @Transactional
+    public  Order doSecKill(User u,Integer id) {
+        //redis预减库存
+        Long decrement = stringRedisTemplate.opsForValue().decrement("secGoods:" + id);
+        if(decrement<0){
+            stringRedisTemplate.opsForValue().increment("secGoods:" + id);
+            return null;
+        }
+        //想mq发送消息
+        rocketMQTemplate.asyncSend("secKill" , new UserAndSecGoodsId().setUser(u).setId(id), new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                stringRedisTemplate.opsForValue().increment("secGoods:" + id);
+            }
+        });
+
+        return null;
     }
 }

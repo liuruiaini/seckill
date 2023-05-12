@@ -5,6 +5,8 @@ import com.javasm.bean.SecGoods;
 import com.javasm.bean.SecOrder;
 import com.javasm.bean.returnData.ReturnData;
 import com.javasm.service.GoodService;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,9 +17,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("goods")
-public class GoodController {
+public class GoodController implements InitializingBean {
     @Resource
     private GoodService goodService;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     @RequestMapping("isLogin")
     public ReturnData isLogin(HttpServletRequest request){
 
@@ -43,4 +47,14 @@ public class GoodController {
         return goodService.secKill(id,request);
     }
 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        List<SecGoods> secGoodsList = goodService.initTable().getT();
+        if(null==secGoodsList){
+            return;
+        }
+        secGoodsList.forEach(secGoods -> {
+            stringRedisTemplate.opsForValue().set("secGoods:"+secGoods.getGoodsId(),secGoods.getStockCount().toString());
+        });
+    }
 }

@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.javasm.bean.LoginUser;
 import com.javasm.bean.User;
 import com.javasm.bean.returnData.ReturnData;
+import com.javasm.bean.returnData.token;
 import com.javasm.exception.BusinessEnum;
 import com.javasm.exception.MyRuntimeException;
+import com.javasm.mapper.TokenMapper;
 import com.javasm.mapper.UserMapper;
 import com.javasm.mapper.UserMapperPlus;
 import com.javasm.service.IUserService;
@@ -41,6 +43,8 @@ public class UserServiceImpl implements IUserService {
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private AuthenticationManager manager;
+    @Resource
+    private TokenMapper tokenMapper;
     @Override
     public ReturnData login(User user) {
 //        User u = mapper.loadUserByUsername(user.getUserName());
@@ -80,6 +84,10 @@ public class UserServiceImpl implements IUserService {
         User redisUser=principal.getUser();
         
         String uuid=UUID.randomUUID().toString();
+        token token1 = new token();
+        token1.setToken(uuid);
+        token1.setId(redisUser.getUid());
+        tokenMapper.insert(token1);
         returnData.setCode(200).setMsg("登录成功!!!").setT(principal).setToken(uuid);
         ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
         ops.set(uuid,JSON.toJSONString(redisUser));

@@ -56,7 +56,7 @@ public class TokenFilter extends OncePerRequestFilter {
         String s = ops.get(token);
         //ReturnData returnData = (ReturnData)JSON.parse(s);
         User user = JSONObject.parseObject(s, User.class);
-        System.out.println(user);
+        //System.out.println(user);
         if (Objects.nonNull(user)){
             LoginUser loginUser = new LoginUser(user);
             Authentication auth =
