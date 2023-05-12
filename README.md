@@ -64,17 +64,21 @@ public class GoodController implements InitializingBean {
 
 ### 系统最大吞吐量
 
-![1683710548437](C:/Users/12166/AppData/Roaming/Typora/typora-user-images/1683710548437.png)
+![1683710548![空接口](https://github.com/liuruiaini/seckill/assets/38555600/e54319bc-b715-4af4-8911-ded3dc6ed7cc)
+
 
 ### 高并发场景下订单数据和库存数据正常
 
-![](D:/秒杀项目图片记录/秒杀接口/redis/数据库.png)
 
-![预减成功](D:/秒杀项目图片记录/秒杀接口/redis/预减成功.png)
+![数据库](https://github.com/liuruiaini/seckill/assets/38555600/2ad4a90f-c8c1-40f6-a485-34b24cda607b)
+
+
+![预减成功](https://github.com/liuruiaini/seckill/assets/38555600/450a63c7-b48d-421c-9e6b-17873a998581)
 
 ### 接口吞吐量从700多提升到1800；减少了一次数据库查询和一次数据库修改
 
-![1683722696875](C:/Users/12166/AppData/Roaming/Typora/typora-user-images/1683722696875.png)
+![吞吐量1800](https://github.com/liuruiaini/seckill/assets/38555600/700484a7-5e62-443e-9913-01f4a4623983)
+
 
 ## 2.使用RockMQ异步下单
 
@@ -84,13 +88,11 @@ public class GoodController implements InitializingBean {
 
 处理方法（也就是如何保证接口幂等性）：1.使用联合唯一索引，插入数据时会被索引拦截2.加一个版本号，对于修改操作只能修改固定版本号，每次修改完版本号+1
 
-![](D:/秒杀项目图片记录/秒杀接口/redis+rocketMq/redis预减库存.png)
-
-![订单](D:/秒杀项目图片记录/秒杀接口/redis+rocketMq/订单.png)
-
-![库存](D:/秒杀项目图片记录/秒杀接口/redis+rocketMq/库存.png)
-
-![吞吐量1200](D:/秒杀项目图片记录/秒杀接口/redis+rocketMq/吞吐量1200.png)
+![redis预减库存](https://github.com/liuruiaini/seckill/assets/38555600/80792e02-2053-4bd5-b618-1f7ac918fcb8)
+![订单](https://github.com/liuruiaini/seckill/assets/38555600/45ebcd4a-855c-439a-b386-c53a33afe9fa)
+![库![吞吐量1200](https://github.com/liuruiaini/seckill/assets/38555600/77c3277e-a6c2-4b8f-a696-c0f26dca06fb)
+存](https://github.com/liuruiaini/seckill/assets/38555600/b30a96c6-aebf-45dc-9ce8-cfb12887c9b5)
+![吞吐量1200](https://github.com/liuruiaini/seckill/assets/38555600/f8c83337-8b09-41ac-ad03-18aaca48d790)
 
 秒杀接口吞吐量1200，其实也还好
 
